@@ -1,5 +1,4 @@
-#ifndef MODELVERTEX_H
-#define MODELVERTEX_H
+#pragma once
 
 #include "MathGeoLibFwd.h"
 #include "ModelPolygon.h"
@@ -32,4 +31,3 @@ public:
     vector<ModelPolygon*> connectedPolygons;
 };
 
-#endif // MODELVERTEX_H

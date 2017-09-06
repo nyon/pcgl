@@ -11,15 +11,16 @@ Model::Model(const AABB& startAABB) : vertexCount(0), ready(true), aabb(startAAB
 
 Model::~Model()
 {
-    if(vbo.isCreated()) vbo.destroy();
+    if(vbo.isCreated())
+    {
+        vbo.destroy();
+    }
 }
 
 const AABB& Model::currentAABB()
 {
     return states.current()->aabb;
 }
-
-
 
 ModelData* Model::data()
 {
@@ -65,18 +66,23 @@ SurfacePoint Model::randomVertex()
     LCG lcg;
     ModelData *modelData = data();
     size_t vertexCount = modelData->vertexData.size();
-    if(!vertexCount) return SurfacePoint(vec::zero, vec::unitZ);
+    if(!vertexCount)
+    {
+        return SurfacePoint(vec::zero, vec::unitZ);
+    }
     ModelVertex *v = modelData->vertexData.at(lcg.Int() % vertexCount);
     return SurfacePoint(v->pos, v->normal);
 }
 
 SurfacePoint Model::randomSurfacePoint()
 {
-    // Select random point in model bounding box
     LCG lcg;
     ModelData *modelData = data();
     size_t polygonCount = modelData->polygonData.size();
-    if(!polygonCount) return SurfacePoint(vec::zero, vec::unitZ);
+    if(!polygonCount)
+    {
+        return SurfacePoint(vec::zero, vec::unitZ);
+    }
     ModelPolygon *nearestPolygon = modelData->polygonData.at(lcg.Int() % polygonCount);
 
     // Triangulate Polygon and pick point on triangle
@@ -88,7 +94,7 @@ SurfacePoint Model::randomSurfacePoint()
 
     float u = lcg.FloatIncl(0.0f, 1.0f);
     float v = lcg.FloatIncl(0.0f, 1.0f);
-    if (u + v >= 1.0f)
+    if(u + v >= 1.0f)
     {
         u = 1.0f - u;
         v = 1.0f - v;
@@ -100,7 +106,7 @@ SurfacePoint Model::randomSurfacePoint()
     // Source: MathGeoLib by Jukka Jylänki
     SurfacePoint randomPosition = SurfacePoint(a->pos + ((b->pos - a->pos) * u + (c->pos - a->pos) * v),
                                                a->normal + ((b->normal - a->normal) * u + (c->normal - a->normal) * v));
-
+    // cleanup previous triangulation
     for(ModelPolygon *polygon : triangles)
     {
         delete polygon;
@@ -118,7 +124,6 @@ void Model::render()
 {
     if(ready)
     {
-        qDebug() << "RENDER " << data();
         QVector<GLfloat> modelData = data()->generateModel();
         vertexCount = modelData.count();
 
@@ -129,7 +134,6 @@ void Model::render()
         vbo.bind();
         vbo.allocate(modelData.constData(), modelData.count() * sizeof(GLfloat));
 
-
         QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
         f->glEnableVertexAttribArray(0);
         f->glEnableVertexAttribArray(1);
@@ -139,7 +143,6 @@ void Model::render()
 
         ready = false;
     }
-
 
     if(vertexCount)
     {

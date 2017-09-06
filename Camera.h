@@ -1,5 +1,4 @@
-#ifndef CAMERA_H
-#define CAMERA_H
+#pragma once
 
 #include "MathGeoLibFwd.h"
 #include "Math/float3.h"
@@ -30,5 +29,3 @@ public:
 private:
     void rotateAroundAxis(vec& v, const vec& axis, float amount);
 };
-
-#endif // CAMERA_H

@@ -1,5 +1,4 @@
-#ifndef WINDOW_H
-#define WINDOW_H
+#pragma once
 
 #include <QWidget>
 
@@ -12,8 +11,6 @@ class Window : public QWidget
 public:
     explicit Window(Application *app);
 private:
-    GLWidget    *glWidget;
+    GLWidget *glWidget;
     Application *application;
 };
-
-#endif

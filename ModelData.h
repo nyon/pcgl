@@ -1,5 +1,4 @@
-#ifndef MODELDATA_H
-#define MODELDATA_H
+#pragma once
 
 #include <vector>
 #include <unordered_map>
@@ -67,10 +66,10 @@ public:
 
     void recalculatePlanes();
 
+//private: // TODO: fixme
     void applyMatrix(const float4x4& matrix);
 
     vector<ModelPolygon*> polygonData;
     vector<ModelVertex*> vertexData;
 };
 
-#endif // MODELDATA_H

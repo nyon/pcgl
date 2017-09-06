@@ -6,8 +6,9 @@ module PCGL
       parse_rules = filter_non_parseables(line, parse_rules)
 
       raise_too_many_rules_for(line) if parse_rules.length > 1
-      raise_no_rules_for(line) if parse_rules.empty?
-
+      if parse_rules.empty?
+        parse_rules.push [Raw]
+      end
       parse_rules.first.last.new(line).process
     end
 

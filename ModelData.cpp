@@ -21,7 +21,10 @@ ModelData::ModelData(const ModelData& other)
 
 ModelData::~ModelData()
 {
-
+    for(ModelPolygon* polygon : polygonData)
+    {
+        //delete polygon; // TODO: fixme
+    }
 }
 
 void ModelData::recalculatePlanes()
@@ -90,7 +93,7 @@ void ModelData::merge(ModelData *other)
 
 void ModelData::addPolygons(vector<ModelPolygon*>::const_iterator first, vector<ModelPolygon*>::const_iterator last)
 {
-    for (auto cur = first; cur != last; ++cur)
+    for(auto cur = first; cur != last; ++cur)
     {
         polygonData.push_back(*cur);
     }
@@ -114,7 +117,7 @@ void ModelData::addVertices(const vector<ModelVertex*>& list)
 
 void ModelData::addVertices(vector<ModelVertex*>::const_iterator first, vector<ModelVertex*>::const_iterator last)
 {
-    for (auto cur = first; cur != last; ++cur)
+    for(auto cur = first; cur != last; ++cur)
     {
         vertexData.push_back(*cur);
     }
@@ -167,10 +170,10 @@ void ModelData::scaleSelected(const vec& scale)
 
 void ModelData::exportOBJ(QString filename)
 {
-    QFile file( filename );
-    if ( file.open(QIODevice::ReadWrite) )
+    QFile file(filename);
+    if(file.open(QIODevice::ReadWrite))
     {
-        QTextStream stream( &file );
+        QTextStream stream(&file);
         unordered_map<ModelVertex*,int> indexMap;
         indexMap.reserve(vertexData.size());
         int i = 0;

@@ -1,3 +1,5 @@
+require_relative './base'
+
 module PCGL
   module Statement
     # rule definition base

@@ -46,5 +46,6 @@
 
 Application::Application()
 {
-  setCentralWidget(new Window(this));
+    auto applicationWindow = new Window(this);
+    setCentralWidget(applicationWindow);
 }

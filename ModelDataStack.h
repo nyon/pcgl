@@ -1,5 +1,4 @@
-#ifndef MODELDATASTACK_H
-#define MODELDATASTACK_H
+#pragma once
 
 #include <vector>
 
@@ -22,4 +21,3 @@ private:
     vector<ModelData*> modelData;
 };
 
-#endif // MODELDATASTACK_H

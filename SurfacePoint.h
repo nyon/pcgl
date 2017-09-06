@@ -1,5 +1,4 @@
-#ifndef SURFACEPOINT_H
-#define SURFACEPOINT_H
+#pragma once
 
 #include "MathGeoLibFwd.h"
 #include "Math/float3.h"
@@ -12,4 +11,3 @@ public:
     vec normal;
 };
 
-#endif // SURFACEPOINT_H

@@ -1,3 +1,5 @@
+require_relative './base'
+
 module PCGL
   module Visitor
     # rule collector, collects all rules and

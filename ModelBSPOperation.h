@@ -1,5 +1,4 @@
-#ifndef MODELBSP_H
-#define MODELBSP_H
+#pragma once
 
 class ModelBSPNode;
 class ModelData;
@@ -35,4 +34,3 @@ public:
     map<tuple<int, int, int>, ModelVertex*> vertexFix;
 };
 
-#endif // MODELBSP_H

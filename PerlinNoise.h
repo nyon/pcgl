@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 
 // THIS CLASS IS A TRANSLATION TO C++11 FROM THE REFERENCE
@@ -5,9 +7,6 @@
 // THE ORIGINAL JAVA IMPLEMENTATION IS COPYRIGHT 2002 KEN PERLIN
 
 // I ADDED AN EXTRA METHOD THAT GENERATES A NEW PERMUTATION VECTOR (THIS IS NOT PRESENT IN THE ORIGINAL IMPLEMENTATION)
-
-#ifndef PERLINNOISE_H
-#define PERLINNOISE_H
 
 class PerlinNoise {
 	// The permutation vector
@@ -27,4 +26,3 @@ private:
 
 float pnoise3(float x, float y, float z);
 
-#endif

@@ -8,19 +8,19 @@
 
 GLWidget::GLWidget(QWidget *parent)
     : QOpenGLWidget(parent),
-      m_xRot(0),
-      m_yRot(0),
-      m_zRot(0),
-      model(0),
-      baseModel(0),
-      m_program(0),
-      m_projMatrixLoc(),
-      m_mvMatrixLoc(),
-      m_normalMatrixLoc(),
-      m_lightPosLoc(),
+      currentXRotation(0),
+      currentYRotation(0),
+      currentZRotation(0),
+      activeModel(0),
+      activeModelBase(0),
+      shaderProgram(0),
+      shaderProjectionMatrix(),
+      shaderModelViewMatrix(),
+      shaderNormalMatrix(),
+      shaderLightPosition(),
       camera(vec(0,0,40))
 {
-    this->setFocusPolicy(Qt::StrongFocus);
+    setFocusPolicy(Qt::StrongFocus);
 }
 
 GLWidget::~GLWidget()
@@ -41,30 +41,21 @@ QSize GLWidget::sizeHint() const
 void GLWidget::keyPressEvent(QKeyEvent *e)
 {
     keyPressed[e->key()] = true;
+
     switch(e->key())
     {
     case Qt::Key_Escape:
         QApplication::closeAllWindows();
         break;
-    case Qt::Key_Left:
-    {
-        Test *test = ((Test*)baseModel);
-        test->big_boulder();
-
-        model->regenerate();
-        break;
-    }
-    case Qt::Key_Right:
-        baseModel->select_sphere(model->randomSurfacePoint(),5, 0.2);
-        baseModel->rotate_z_selection(0.2);
-        model->regenerate();
-        break;
-    case Qt::Key_E:
-        if(model) delete model;
+    case Qt::Key_R:
+        if(activeModel)
+        {
+            delete activeModel;
+        }
         generateModel();
         break;
-    case Qt::Key_F:
-        model->data()->exportOBJ("asteroid.obj");
+    case Qt::Key_E:
+        activeModel->data()->exportOBJ("export.obj");
         break;
     }
 }
@@ -77,28 +68,32 @@ void GLWidget::keyReleaseEvent(QKeyEvent *e)
 
 void GLWidget::setXRotation(int angle)
 {
-    if (angle != m_xRot) {
-        camera.rotateHeading((m_xRot-angle) * 0.0174532925f * 0.02f);
+    if(angle != currentXRotation)
+    {
+        camera.rotateHeading((currentXRotation-angle) * 0.0174532925f * 0.02f);
         emit xRotationChanged(angle);
-        m_xRot = angle;
+        currentXRotation = angle;
         update();
     }
 }
 
 void GLWidget::setYRotation(int angle)
 {
-    if (angle != m_yRot) {
-        camera.rotatePitch(-(m_yRot-angle) * 0.0174532925f * 0.02f);
+    if(angle != currentYRotation)
+    {
+        camera.rotatePitch(-(currentYRotation-angle) * 0.0174532925f * 0.02f);
         emit xRotationChanged(angle);
-        m_yRot = angle;
+        currentYRotation = angle;
         update();
     }
 }
 
 void GLWidget::setZRotation(int angle)
 {
-    if (angle != m_zRot) {
-        m_zRot = angle;
+    if(angle != currentZRotation)
+    {
+        camera.rotateYaw(-(currentZRotation-angle) * 0.0174532925f * 0.02f);
+        currentZRotation = angle;
         emit zRotationChanged(angle);
         update();
     }
@@ -107,10 +102,10 @@ void GLWidget::setZRotation(int angle)
 void GLWidget::cleanup()
 {
     makeCurrent();
-    delete model;
-    delete baseModel;
-    delete m_program;
-    m_program = 0;
+    delete activeModel;
+    delete activeModelBase;
+    delete shaderProgram;
+    shaderProgram = 0;
     doneCurrent();
 }
 
@@ -128,12 +123,7 @@ void GLWidget::strafe(float amount)
 
 void GLWidget::generateModel()
 {
-    QTime myTimer;
-    myTimer.start();
-
-    model = baseModel->generate(AABB(vec(-10,-10,-10), vec(10,10,10)));
-    int nMilliseconds = myTimer.elapsed();
-    qDebug() << nMilliseconds << " ms";
+    activeModel = activeModelBase->generate(AABB(vec(-10,-10,-10), vec(10,10,10)));
 }
 
 void GLWidget::initializeGL()
@@ -143,27 +133,27 @@ void GLWidget::initializeGL()
     initializeOpenGLFunctions();
     glClearColor(0, 0, 0, 1);
 
-    m_program = new QOpenGLShaderProgram;
-    m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, "standard.vs");
-    m_program->addShaderFromSourceFile(QOpenGLShader::Fragment, "standard.fs");
-    m_program->bindAttributeLocation("vertex", 0);
-    m_program->bindAttributeLocation("normal", 1);
-    m_program->link();
+    shaderProgram = new QOpenGLShaderProgram;
+    shaderProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, "standard.vs");
+    shaderProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, "standard.fs");
+    shaderProgram->bindAttributeLocation("vertex", 0);
+    shaderProgram->bindAttributeLocation("normal", 1);
+    shaderProgram->link();
 
-    m_program->bind();
-    m_projMatrixLoc = m_program->uniformLocation("projMatrix");
-    m_mvMatrixLoc = m_program->uniformLocation("mvMatrix");
-    m_normalMatrixLoc = m_program->uniformLocation("normalMatrix");
-    m_lightPosLoc = m_program->uniformLocation("lightPos");
+    shaderProgram->bind();
+    shaderProjectionMatrix = shaderProgram->uniformLocation("projMatrix");
+    shaderModelViewMatrix = shaderProgram->uniformLocation("mvMatrix");
+    shaderNormalMatrix = shaderProgram->uniformLocation("normalMatrix");
+    shaderLightPosition = shaderProgram->uniformLocation("lightPos");
 
 
-    baseModel = new Test();
+    activeModelBase = new Test();
 
     generateModel();
 
-    m_program->setUniformValue(m_lightPosLoc, QVector3D(0, 0, 70));
+    shaderProgram->setUniformValue(shaderLightPosition, QVector3D(0, 0, 70));
 
-    m_program->release();
+    shaderProgram->release();
 }
 
 
@@ -178,18 +168,15 @@ void GLWidget::paintGL()
     glEnable(GL_DEPTH_TEST);
 
     m_world.setToIdentity();
-    //m_world.rotate(180.0f - (m_xRot / 16.0f), 1, 0, 0);
-    //m_world.rotate(m_yRot / 16.0f, 0, 1, 0);
-    //m_world.rotate(m_zRot / 16.0f, 0, 0, 1);
 
-    m_program->bind();
-    m_program->setUniformValue(m_projMatrixLoc, m_proj);
-    m_program->setUniformValue(m_mvMatrixLoc, camera * m_world);
+    shaderProgram->bind();
+    shaderProgram->setUniformValue(shaderProjectionMatrix, m_proj);
+    shaderProgram->setUniformValue(shaderModelViewMatrix, camera * m_world);
     QMatrix3x3 normalMatrix = m_world.normalMatrix();
-    m_program->setUniformValue(m_normalMatrixLoc, normalMatrix);
-    model->render();
+    shaderProgram->setUniformValue(shaderNormalMatrix, normalMatrix);
+    activeModel->render();
 
-    m_program->release();
+    shaderProgram->release();
     update();
 }
 
@@ -209,15 +196,15 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     int dx = event->x() - m_lastPos.x();
     int dy = event->y() - m_lastPos.y();
 
-    if (event->buttons() & Qt::LeftButton)
+    if(event->buttons() & Qt::LeftButton)
     {
-        setXRotation(m_xRot + 8 * dy);
-        setYRotation(m_yRot + 8 * dx);
+        setXRotation(currentXRotation + 8 * dy);
+        setYRotation(currentYRotation + 8 * dx);
     }
-    else if (event->buttons() & Qt::RightButton)
+    else if(event->buttons() & Qt::RightButton)
     {
-        setXRotation(m_xRot + 8 * dy);
-        setZRotation(m_zRot + 8 * dx);
+        setXRotation(currentXRotation + 8 * dy);
+        setZRotation(currentZRotation + 8 * dx);
     }
     m_lastPos = event->pos();
 }

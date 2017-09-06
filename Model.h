@@ -18,9 +18,6 @@
 #include "SurfacePoint.h"
 
 
-
-
-
 using namespace std;
 
 class BaseModel;

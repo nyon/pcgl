@@ -5,7 +5,10 @@
 
 ModelBSPOperation::ModelBSPOperation(ModelData *current, ModelData *left, ModelData *right) : current(current)
 {
-    // TODO: optimize this
+    // There is some optimization potential in here
+    // Triangulation and recalculation is unnecessary
+    // if the model itself is triangulated before being
+    // handed to a BSP operation
     left->triangularize();
     right->triangularize();
     left->recalculatePlanes();
@@ -45,6 +48,12 @@ void ModelBSPOperation::combine()
     for(ModelVertex *v : current->vertexData)
     {
         v->recalculateNormal();
+    }
+
+
+    for(ModelPolygon *polygon : deletePolygons)
+    {
+    //    delete polygon; // TODO: fixme
     }
 }
 

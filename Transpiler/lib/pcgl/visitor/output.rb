@@ -85,6 +85,10 @@ CODE
         h_output '  '
       end
 
+      def post_visit_raw(object)
+        h_output "  #{object.line};"
+      end
+
       def output_first_rule(object)
         h_output '  void __init() {'
         h_output "    #{object.meta[:name]}();"

@@ -1,3 +1,5 @@
+require_relative './rule'
+
 module PCGL
   module Statement
     # simple rule definition

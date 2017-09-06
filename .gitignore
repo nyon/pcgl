@@ -1,5 +1,39 @@
-
-# Created by https://www.gitignore.io/api/qt,ruby,c,c++
+### LaTeX ###
+*.acn
+*.acr
+*.alg
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.dvi
+*.fdb_latexmk
+*.fls
+*.glg
+*.glo
+*.gls
+*.idx
+*.ilg
+*.ind
+*.ist
+*.lof
+*.log
+*.lot
+*.maf
+*.mtc
+*.mtc0
+*.nav
+*.nlo
+*.out
+*.pdfsync
+*.ps
+*.run.xml
+*.snm
+*.synctex.gz
+*.toc
+*.vrb
+*.xdy
+*.tdo
 
 ### Qt ###
 # C++ objects and libs
@@ -33,6 +67,12 @@ Makefile*
 
 *.autosave
 
+<<<<<<< HEAD
+#QtCtreator Qml
+*.qmlproject.user
+*.qmlproject.user.*
+
+=======
 # QtCtreator Qml
 *.qmlproject.user
 *.qmlproject.user.*
@@ -41,6 +81,7 @@ Makefile*
 CMakeLists.txt.user*
 
 
+>>>>>>> b948149d18fd056afb20aeab184aff632f65cf4e
 
 ### Ruby ###
 *.gem
@@ -55,13 +96,18 @@ CMakeLists.txt.user*
 /test/version_tmp/
 /tmp/
 
+<<<<<<< HEAD
+=======
 # Used by dotenv library to load environment variables.
 # .env
 
+>>>>>>> b948149d18fd056afb20aeab184aff632f65cf4e
 ## Specific to RubyMotion:
 .dat*
 .repl_history
 build/
+<<<<<<< HEAD
+=======
 *.bridgesupport
 build-iPhoneOS/
 build-iPhoneSimulator/
@@ -73,6 +119,7 @@ build-iPhoneSimulator/
 # https://guides.cocoapods.org/using/using-cocoapods.html#should-i-check-the-pods-directory-into-source-control
 #
 # vendor/Pods/
+>>>>>>> b948149d18fd056afb20aeab184aff632f65cf4e
 
 ## Documentation cache and generated files:
 /.yardoc/
@@ -94,6 +141,8 @@ build-iPhoneSimulator/
 # unless supporting rvm < 1.11.0 or doing something fancy, ignore this:
 .rvmrc
 
+<<<<<<< HEAD
+=======
 
 ### C ###
 # Prerequisites
@@ -182,3 +231,4 @@ dkms.conf
 *.exe
 *.out
 *.app
+>>>>>>> b948149d18fd056afb20aeab184aff632f65cf4e

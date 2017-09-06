@@ -1,5 +1,4 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
 
 #include <QMainWindow>
 
@@ -9,5 +8,3 @@ class Application : public QMainWindow
 public:
     Application();
 };
-
-#endif

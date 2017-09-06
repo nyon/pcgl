@@ -1,5 +1,4 @@
-#ifndef MODELPOLYGON_H
-#define MODELPOLYGON_H
+#pragma once
 
 #include "Geometry/Plane.h"
 #include <functional>
@@ -39,10 +38,8 @@ public:
 
     vector<ModelPolygon*> toTriangle();
     ModelVertex* vertex(int n);
+
     Plane plane;
-//private:
     vector<ModelVertex*> vertices;
 
 };
-
-#endif // MODELPOLYGON_H

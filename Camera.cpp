@@ -50,13 +50,13 @@ void Camera::rotateAroundAxis(vec& v, const vec& axis, float amount)
     float fY;
     float fZ = temp.z;
 
-    const float fA = -atan2(temp.x,temp.z);
-    temp.x = sin(atan2(fX,fZ)+fA)*sqrt(fX*fX+fZ*fZ);
-    temp.z = cos(atan2(fX,fZ)+fA)*sqrt(fX*fX+fZ*fZ);
+    const float fA = -atan2(temp.x, temp.z);
+    temp.x = sin(atan2(fX, fZ) + fA) * sqrt(fX * fX + fZ * fZ);
+    temp.z = cos(atan2(fX, fZ) + fA) * sqrt(fX * fX + fZ * fZ);
     fZ = v.z;
     fX = v.x;
-    v.x = sin(atan2(fX,fZ)+fA)*sqrt(fX*fX+fZ*fZ);
-    v.z = cos(atan2(fX,fZ)+fA)*sqrt(fX*fX+fZ*fZ);
+    v.x = sin(atan2(fX, fZ) + fA) * sqrt(fX * fX + fZ * fZ);
+    v.z = cos(atan2(fX, fZ) + fA) * sqrt(fX * fX + fZ * fZ);
 
 
     const float fB = -atan2(temp.y,temp.z);

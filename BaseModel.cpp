@@ -20,46 +20,6 @@ Model* BaseModel::generate(const AABB& aabb)
     return model;
 }
 
-
-
-/*
-#define divide_macro(AXIS,UVEC,IDX) \
-void BaseModel::divide_##AXIS(function<void()> left, function<void()> right, float dividor) \
-{\
-    pushOBB();\
-    {\
-        vec scale(1,1,1);\
-        scale.AXIS = dividor;\
-        vec center = vec(currentOBB()->CenterPoint());\
-        float oldr = currentOBB()->r.AXIS;\
-        currentOBB()->Scale(center, scale);\
-        vec tr = vec(0,0,0);\
-        tr.AXIS = -(oldr - currentOBB()->r.AXIS);\
-        currentOBB()->Translate(tr);\
-        left();\
-    }\
-    popOBB();\
-\
-    pushOBB();\
-    {\
-        vec scale(1,1,1);\
-        scale.AXIS = 1.0f - dividor;\
-        vec center = vec(currentOBB()->CenterPoint());\
-        float oldr = currentOBB()->r.AXIS;\
-        currentOBB()->Scale(center, scale);\
-        vec tr = vec(0,0,0);\
-        tr.AXIS = (oldr - currentOBB()->r.AXIS);\
-        currentOBB()->Translate(tr);\
-        right();\
-    }\
-    popOBB();\
-}
-
-divide_macro(x,unitX,0)
-divide_macro(y,unitY,1)
-divide_macro(z,unitZ,2)
-*/
-
 // source: http://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x
 template <class T>
 inline void hash_combine(std::size_t& seed, const T& v)
@@ -69,9 +29,11 @@ inline void hash_combine(std::size_t& seed, const T& v)
 }
 
 // source: http://stackoverflow.com/questions/32685540/c-unordered-map-with-pair-as-key-not-compiling
-struct pair_hash {
+struct pair_hash
+{
     template <class T1, class T2>
-    std::size_t operator () (const std::pair<T1,T2> &p) const {
+    size_t operator () (const pair<T1,T2> &p) const
+    {
         auto h1 = std::hash<T1>{}(p.first);
         auto h2 = std::hash<T2>{}(p.second);
 
@@ -80,140 +42,153 @@ struct pair_hash {
     }
 };
 
-void BaseModel::ellipsoid(float rx, float ry, float rz, int ellipsoidDivisions)
+void BaseModel::ellipsoid(float xRadius, float yRadius, float zRadius, int ellipsoidDivisions)
 {
-    int divisions = ellipsoidDivisions;
-    if(divisions == -1) divisions = 7;
-    //qDebug() << "START SPHERE " << divisions;
-    const int numVertices = 24*(1<<(2*divisions));
+    // Set sane default if no sane number is given as parameter
+    if(ellipsoidDivisions < 1)
+    {
+        ellipsoidDivisions = 7;
+    }
+
+    // Precalculate number of triangles for allocation speedup
+    const int numVertices = 24 * (1 << (2 * ellipsoidDivisions));
     const int numTriangles = numVertices / 3;
 
-    // Start subdividing from a diamond shape.
-    ModelVertex *xp = ModelVertex::fromVector(1.0f,0,0);
-    ModelVertex *xn = ModelVertex::fromVector(-1.0f, 0, 0);
-    ModelVertex *yp = ModelVertex::fromVector(0, 1.0f, 0);
-    ModelVertex *yn = ModelVertex::fromVector(0, -1.0f, 0);
-    ModelVertex *zp = ModelVertex::fromVector(0, 0, 1.0f);
-    ModelVertex *zn = ModelVertex::fromVector(0, 0, -1.0f);
-    vector<ModelPolygon*> tempPolygons;
-    vector<ModelVertex*> tempVertices;
+    // the resulting polygons and vertices are stored in the following
+    // STL-containers
+    vector<ModelPolygon*> generatedPolygons;
+    vector<ModelVertex*> generatedVertices;
 
-    tempVertices.push_back(xp);
-    tempVertices.push_back(xn);
-    tempVertices.push_back(yp);
-    tempVertices.push_back(yn);
-    tempVertices.push_back(zp);
-    tempVertices.push_back(zn);
+    // Start subdividing from a diamond shape
+    ModelVertex *positiveXVertex = ModelVertex::fromVector( 1.0f,  0.0f,  0.0f);
+    ModelVertex *negativeXVertex = ModelVertex::fromVector(-1.0f,  0.0f,  0.0f);
+    ModelVertex *positiveYVertex = ModelVertex::fromVector( 0.0f,  1.0f,  0.0f);
+    ModelVertex *negativeYVertex = ModelVertex::fromVector( 0.0f, -1.0f,  0.0f);
+    ModelVertex *positiveZVertex = ModelVertex::fromVector( 0.0f,  0.0f,  1.0f);
+    ModelVertex *negativeZVertex = ModelVertex::fromVector( 0.0f,  0.0f, -1.0f);
 
-    tempPolygons.reserve(numTriangles);
-    tempPolygons.push_back(ModelPolygon::fromTriangle(yp,zp,xp));
-    tempPolygons.push_back(ModelPolygon::fromTriangle(xp,zn,yp));
-    tempPolygons.push_back(ModelPolygon::fromTriangle(yn,xp,zp));
-    tempPolygons.push_back(ModelPolygon::fromTriangle(yn,zn,xp));
-    tempPolygons.push_back(ModelPolygon::fromTriangle(zp,yp,xn));
-    tempPolygons.push_back(ModelPolygon::fromTriangle(yp,zn,xn));
-    tempPolygons.push_back(ModelPolygon::fromTriangle(yn,zp,xn));
-    tempPolygons.push_back(ModelPolygon::fromTriangle(xn,zn,yn));
+    generatedVertices.push_back(positiveXVertex);
+    generatedVertices.push_back(negativeXVertex);
+    generatedVertices.push_back(positiveYVertex);
+    generatedVertices.push_back(negativeYVertex);
+    generatedVertices.push_back(positiveZVertex);
+    generatedVertices.push_back(negativeZVertex);
 
+    generatedPolygons.reserve(numTriangles);
+    generatedPolygons.push_back(ModelPolygon::fromTriangle(positiveYVertex,positiveZVertex,positiveXVertex));
+    generatedPolygons.push_back(ModelPolygon::fromTriangle(positiveXVertex,negativeZVertex,positiveYVertex));
+    generatedPolygons.push_back(ModelPolygon::fromTriangle(negativeYVertex,positiveXVertex,positiveZVertex));
+    generatedPolygons.push_back(ModelPolygon::fromTriangle(negativeYVertex,negativeZVertex,positiveXVertex));
+    generatedPolygons.push_back(ModelPolygon::fromTriangle(positiveZVertex,positiveYVertex,negativeXVertex));
+    generatedPolygons.push_back(ModelPolygon::fromTriangle(positiveYVertex,negativeZVertex,negativeXVertex));
+    generatedPolygons.push_back(ModelPolygon::fromTriangle(negativeYVertex,positiveZVertex,negativeXVertex));
+    generatedPolygons.push_back(ModelPolygon::fromTriangle(negativeXVertex,negativeZVertex,negativeYVertex));
+
+    // Lookup table for previously generated triangle edges
     unordered_map<pair<ModelVertex*, ModelVertex*>, ModelVertex*, pair_hash> edges;
 
-    int oldEnd = 0;
+    int polygonPivot = 0;
     int iterationsPerDivision = 8;
-    int startSphereAt = 0;
-    //const AABB& aabb = model->currentAABB();
-    //qDebug() << obb.ToString().c_str();
-    //qDebug() << divisions;
-    for(int division = divisions; division > 0; division--)
+    int polygonStartPivot = 0;
+
+    for(int division = ellipsoidDivisions; division > 0; division--)
     {
         int nextIterationsPerDivision = 0;
         for(int iteration = 0; iteration < iterationsPerDivision; iteration++)
         {
-            ModelPolygon* cur = tempPolygons.at(oldEnd);
-            ModelVertex* a = cur->vertex(0);
-            ModelVertex* b = cur->vertex(1);
-            ModelVertex* c = cur->vertex(2);
-            //if(aabb.Intersects(Triangle(a.pos, b.pos, c.pos).BoundingAABB()))
+            ModelPolygon* currentPolygon = generatedPolygons.at(polygonPivot);
+            ModelVertex* vertexA = currentPolygon->vertex(0);
+            ModelVertex* vertexB = currentPolygon->vertex(1);
+            ModelVertex* vertexC = currentPolygon->vertex(2);
+
+            ModelVertex *vertexAB;
+            ModelVertex *vertexAC;
+            ModelVertex *vertexBC;
+
+            auto newAIterator = edges.find(make_pair(vertexA, vertexB));
+            auto newBIterator = edges.find(make_pair(vertexA, vertexC));
+            auto newCIterator = edges.find(make_pair(vertexB, vertexC));
+
+            if(newAIterator == edges.end())
             {
-                ModelVertex *newA;
-                ModelVertex *newB;
-                ModelVertex *newC;
+                vec newAVector = ((vertexA->pos + vertexB->pos) * 0.5f).Normalized();
 
-                auto newAIterator = edges.find(make_pair(a, b));
-                auto newBIterator = edges.find(make_pair(a, c));
-                auto newCIterator = edges.find(make_pair(b, c));
-
-                if(newAIterator == edges.end())
-                {
-                    vec newAVector = ((a->pos + b->pos) * 0.5f).Normalized();
-
-                    newA = ModelVertex::fromVector(newAVector);
-                    newA->normal = newAVector.Normalized();
-                    edges.emplace(make_pair(a, b), newA);
-                    edges.emplace(make_pair(b, a), newA);
-                    tempVertices.push_back(newA);
-                }
-                else newA = newAIterator->second;
-
-                if(newBIterator == edges.end())
-                {
-                    vec newBVector = ((a->pos + c->pos) * 0.5f).Normalized();
-
-                    newB = ModelVertex::fromVector(newBVector);
-                    newB->normal = newBVector.Normalized();
-                    edges.emplace(make_pair(a, c), newB);
-                    edges.emplace(make_pair(c, a), newB);
-                    tempVertices.push_back(newB);
-                }
-                else newB = newBIterator->second;
-
-                if(newCIterator == edges.end())
-                {
-                    vec newCVector = ((b->pos + c->pos) * 0.5f).Normalized();
-
-                    newC = ModelVertex::fromVector(newCVector);
-                    newC->normal = newCVector.Normalized();
-                    edges.emplace(make_pair(b, c), newC);
-                    edges.emplace(make_pair(c, b), newC);
-                    tempVertices.push_back(newC);
-                }
-                else newC = newCIterator->second;
-
-                tempPolygons.push_back(ModelPolygon::fromTriangle(a, newA, newB));
-                tempPolygons.push_back(ModelPolygon::fromTriangle(b, newC, newA));
-                tempPolygons.push_back(ModelPolygon::fromTriangle(c, newB, newC));
-                tempPolygons.push_back(ModelPolygon::fromTriangle(newA, newC, newB));
-
-
-                nextIterationsPerDivision += 4;
+                vertexAB = ModelVertex::fromVector(newAVector);
+                vertexAB->normal = newAVector.Normalized();
+                edges.emplace(make_pair(vertexA, vertexB), vertexAB);
+                edges.emplace(make_pair(vertexB, vertexA), vertexAB);
+                generatedVertices.push_back(vertexAB);
             }
-            ++oldEnd;
+            else
+            {
+                vertexAB = newAIterator->second;
+            }
+
+            if(newBIterator == edges.end())
+            {
+                vec newBVector = ((vertexA->pos + vertexC->pos) * 0.5f).Normalized();
+
+                vertexAC = ModelVertex::fromVector(newBVector);
+                vertexAC->normal = newBVector.Normalized();
+                edges.emplace(make_pair(vertexA, vertexC), vertexAC);
+                edges.emplace(make_pair(vertexC, vertexA), vertexAC);
+                generatedVertices.push_back(vertexAC);
+            }
+            else
+            {
+                vertexAC = newBIterator->second;
+            }
+
+            if(newCIterator == edges.end())
+            {
+                vec newCVector = ((vertexB->pos + vertexC->pos) * 0.5f).Normalized();
+
+                vertexBC = ModelVertex::fromVector(newCVector);
+                vertexBC->normal = newCVector.Normalized();
+                edges.emplace(make_pair(vertexB, vertexC), vertexBC);
+                edges.emplace(make_pair(vertexC, vertexB), vertexBC);
+                generatedVertices.push_back(vertexBC);
+            }
+            else
+            {
+                vertexBC = newCIterator->second;
+            }
+
+            generatedPolygons.push_back(ModelPolygon::fromTriangle(vertexA, vertexAB, vertexAC));
+            generatedPolygons.push_back(ModelPolygon::fromTriangle(vertexB, vertexBC, vertexAB));
+            generatedPolygons.push_back(ModelPolygon::fromTriangle(vertexC, vertexAC, vertexBC));
+            generatedPolygons.push_back(ModelPolygon::fromTriangle(vertexAB, vertexBC, vertexAC));
+
+
+            nextIterationsPerDivision += 4;
+
+            polygonPivot++;
         }
         iterationsPerDivision = nextIterationsPerDivision;
         nextIterationsPerDivision = 0;
-        startSphereAt = oldEnd;
+        polygonStartPivot = polygonPivot;
     }
 
+    // Add polygons and vertices to the current model state
+    model->data()->addPolygons(generatedPolygons.begin() + polygonStartPivot, generatedPolygons.end());
+    model->data()->addVertices(generatedVertices);
 
-
-    model->data()->addPolygons(tempPolygons.begin()+startSphereAt,tempPolygons.end());
-    model->data()->addVertices(tempVertices);
-
-    for (auto cur = tempPolygons.begin(); cur != tempPolygons.begin()+startSphereAt; ++cur)
+    // Deallocate leftover polygons, that are generated in the subdivision process
+    // and are no longer needed
+    for(auto currentPolygonIterator = generatedPolygons.begin(); currentPolygonIterator != generatedPolygons.begin()+polygonStartPivot; ++currentPolygonIterator)
     {
-        delete *cur;
+        delete *currentPolygonIterator;
     }
 
+    // Now scale every vertex to the given radius and recalculate the vertex normal
     for(ModelVertex *vertex :  model->data()->vertexData)
     {
-        vertex->pos.x *= rx;
-        vertex->pos.y *= ry;
-        vertex->pos.z *= rz;
+        vertex->pos.x *= xRadius;
+        vertex->pos.y *= yRadius;
+        vertex->pos.z *= zRadius;
         vertex->recalculateNormal();
     }
-
-
 }
-
 
 void BaseModel::sphere(float radius, int sphereDivisions)
 {
@@ -264,42 +239,36 @@ void BaseModel::rotate_x_selection(float rot)
 {
     model->data()->rotateXSelected(rot);
 }
+
 void BaseModel::rotate_y_selection(float rot)
 {
     model->data()->rotateYSelected(rot);
 }
+
 void BaseModel::rotate_z_selection(float rot)
 {
     model->data()->rotateZSelected(rot);
-
 }
 
 void BaseModel::push_model_state()
 {
     model->pushModelState();
-
 }
 
 void BaseModel::push_clean_model_state()
 {
     model->pushCleanModelState();
-
 }
 
 void BaseModel::pop_model_state()
 {
     model->popModelState();
-
-
 }
 
 void BaseModel::pop_and_merge_model_state()
 {
     model->popAndMergeModelState();
 }
-
-
-
 
 void BaseModel::select_sphere(const vec& center, float radius, float randomness, float detail)
 {
@@ -329,7 +298,6 @@ void BaseModel::invert_selection()
 void BaseModel::randomize_selection(float amount)
 {
     model->data()->randomizeSelection(amount);
-
 }
 
 void BaseModel::apply_noise_field(function<float (float, float, float)> func, float displace)

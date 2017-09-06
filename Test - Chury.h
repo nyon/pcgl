@@ -26,12 +26,12 @@ public:
   void compress()
   {
       auto v2 = random_surface_point();
-      select_x_gradient(vec(0,0,0),9,100,100);
+      select_x_gradient(vec(0,0,0),9);
       scale_selection(1.0f, 0.4f, 0.4f);
       invert_selection();
       scale_selection(0.5f, 1.0f, 1.0f);
       rotate_z_selection(0.3f);
-      select_x_gradient(vec(0,0,0),12,100,100);
+      select_x_gradient(vec(0,0,0),12);
       invert_selection();
       scale_selection(1.1f, 1.0f, 1.0f);
 
@@ -45,7 +45,7 @@ public:
   }
 
   void asteroid() {
-      ellipsoid(random_float()*2 + 8.2, random_float()*1.2 + 2.9, random_float()*1.2 + 2.9,8); // 9
+      ellipsoid(random_float()*2 + 8.2, random_float()*1.2 + 2.9, random_float()*1.2 + 2.9,9); // 9
 
       repeat(60,bind(&Test::impact, this));
   }

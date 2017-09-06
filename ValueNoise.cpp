@@ -1,4 +1,5 @@
 #include "ValueNoise.h"
+
 #include <math.h>
 
 // Source: http://stackoverflow.com/a/15341154/2471991
